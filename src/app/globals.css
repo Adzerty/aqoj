@@ -101,3 +101,24 @@ body {
 .animate-in {
   animation: aqoj-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Lancer de dé : petit tumble qui rebondit */
+@keyframes aqoj-dice {
+  0% {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(18deg) scale(1.12);
+  }
+  75% {
+    transform: rotate(-6deg) scale(0.98);
+  }
+  100% {
+    transform: rotate(0) scale(1);
+  }
+}
+.animate-dice {
+  animation: aqoj-dice 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
