@@ -1,0 +1,12 @@
+# Caddy : reverse proxy + HTTPS automatique (Let's Encrypt).
+# Le domaine et l'email ACME viennent de l'environnement (docker-compose).
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	# Caddy relaie nativement les WebSockets (Socket.IO) — rien à ajouter.
+	reverse_proxy app:3000
+}

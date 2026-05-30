@@ -1,0 +1,95 @@
+// AQOJ — schéma de base de données (PostgreSQL).
+// Le même provider est utilisé en dev et en prod pour garantir la parité.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Auth.js (NextAuth) ─────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
+  // Stats agrégées (mises à jour à la fin de chaque partie)
+  gamesPlayed Int @default(0)
+  gamesWon    Int @default(0)
+  totalScore  Int @default(0)
+
+  accounts     Account[]
+  sessions     Session[]
+  gameResults  GameResultPlayer[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ───────────────────────────── Jeux / parties ─────────────────────────────
+
+// Une partie terminée. Les lobbies en eux-mêmes vivent en mémoire dans le
+// serveur Socket.IO ; on ne persiste que le résultat pour les stats/l'historique.
+model GameResult {
+  id        String   @id @default(cuid())
+  gameId    String // identifiant du jeu (ex: "tu-preferes")
+  lobbyCode String
+  createdAt DateTime @default(now())
+
+  players GameResultPlayer[]
+}
+
+model GameResultPlayer {
+  id       String  @id @default(cuid())
+  resultId String
+  userId   String?
+  name     String // pseudo affiché au moment de la partie
+  score    Int     @default(0)
+  rank     Int     @default(0)
+  won      Boolean @default(false)
+
+  result GameResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  user   User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resultId])
+}

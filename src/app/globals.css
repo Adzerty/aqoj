@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/* ───────────────────────────── Thème AQOJ ─────────────────────────────
+   Palette « papier chaud » : douce, chaleureuse, feel-good. Clair par défaut.
+   La classe `.dark` sur <html> bascule vers un sombre cosy (pas de néon). */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius: 0.85rem;
+}
+
+/* Clair (défaut) — tons crème & encre chaude */
+:root {
+  --background: #faf7f2;
+  --surface: #ffffff;
+  --surface-2: #f1ece3;
+  --foreground: #2a2722;
+  --muted: #807a70;
+  --border: #e9e2d6;
+  --primary: #15936a;
+  --primary-fg: #ffffff;
+}
+
+/* Sombre — cosy, chaud, sans noir profond */
+.dark {
+  --background: #15140f;
+  --surface: #1d1b15;
+  --surface-2: #26231b;
+  --foreground: #ece7dc;
+  --muted: #a39d8e;
+  --border: #322d23;
+  --primary: #3bc28d;
+  --primary-fg: #0c1410;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Apparitions douces */
+@keyframes aqoj-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-pop {
+  animation: aqoj-pop 0.22s ease-out both;
+}
+
+@keyframes aqoj-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-in {
+  animation: aqoj-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
