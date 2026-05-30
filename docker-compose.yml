@@ -1,7 +1,16 @@
+# Rotation des logs commune à tous les services (évite des fichiers de logs
+# qui gonflent indéfiniment dans /var/lib/docker).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -17,6 +26,7 @@ services:
   app:
     build: .
     restart: unless-stopped
+    logging: *default-logging
     env_file: .env
     depends_on:
       db:
@@ -27,6 +37,7 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"

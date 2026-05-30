@@ -188,6 +188,43 @@ cat backup-2026-05-30.sql | docker compose exec -T db psql -U aqoj -d aqoj
 
 ---
 
+## 10 bis. Nettoyage Docker (éviter le disque plein)
+
+Chaque `docker compose up -d --build` laisse derrière lui l'**ancienne image** et du
+**cache de build** → le disque se remplit. Vérifie ce que ça pèse :
+
+```bash
+docker system df
+```
+
+Nettoyage **sûr** (ne touche ni aux conteneurs qui tournent, ni aux volumes) :
+
+```bash
+docker image prune -f      # vieilles images orphelines
+docker builder prune -f    # cache de build (le plus gros avec --build)
+# …ou tout en une fois (+ conteneurs arrêtés + réseaux inutilisés) :
+docker system prune -f
+```
+
+> ⚠️ **Ne JAMAIS** ajouter `--volumes`, ni faire `docker volume prune` :
+> ça effacerait `aqoj_pgdata` (= **toute ta base de données**). Tant que la stack
+> tourne, ces commandes ne suppriment de toute façon pas les images/volumes utilisés.
+
+Bonne habitude : nettoyer juste après chaque déploiement —
+
+```bash
+git pull && docker compose up -d --build && docker image prune -f
+```
+
+Ou automatise un nettoyage hebdo via cron :
+
+```bash
+( crontab -l 2>/dev/null; echo "0 4 * * 0 docker image prune -f && docker builder prune -f" ) | crontab -
+```
+
+La **rotation des logs** est déjà configurée dans `docker-compose.yml`
+(`max-size: 10m`, `max-file: 3`) → applique-la avec un simple `docker compose up -d`.
+
 ## 11. Dépannage
 
 | Symptôme                              | Piste                                                                 |
