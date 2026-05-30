@@ -22,14 +22,15 @@ export type CardTone =
 
 export type CardSize = "sm" | "md" | "lg";
 
+// Tons à fort contraste : fond saturé + texte très foncé (clair) / très clair (sombre).
 const TONES: Record<CardTone, string> = {
   neutral: "bg-surface border-border text-foreground",
-  blue: "bg-sky-50 border-sky-300 text-sky-900 dark:bg-sky-400/10 dark:border-sky-400/40 dark:text-sky-200",
-  red: "bg-rose-50 border-rose-300 text-rose-900 dark:bg-rose-500/10 dark:border-rose-500/40 dark:text-rose-200",
-  green: "bg-emerald-50 border-emerald-300 text-emerald-900 dark:bg-emerald-400/10 dark:border-emerald-400/40 dark:text-emerald-200",
-  amber: "bg-amber-50 border-amber-300 text-amber-900 dark:bg-amber-400/10 dark:border-amber-400/40 dark:text-amber-200",
-  violet: "bg-violet-50 border-violet-300 text-violet-900 dark:bg-violet-400/10 dark:border-violet-400/40 dark:text-violet-200",
-  slate: "bg-slate-100 border-slate-300 text-slate-900 dark:bg-slate-400/10 dark:border-slate-400/40 dark:text-slate-200",
+  blue: "bg-sky-100 border-sky-400 text-sky-950 dark:bg-sky-500/25 dark:border-sky-400/60 dark:text-sky-50",
+  red: "bg-rose-100 border-rose-400 text-rose-950 dark:bg-rose-500/25 dark:border-rose-500/60 dark:text-rose-50",
+  green: "bg-emerald-100 border-emerald-400 text-emerald-950 dark:bg-emerald-500/25 dark:border-emerald-400/60 dark:text-emerald-50",
+  amber: "bg-amber-100 border-amber-400 text-amber-950 dark:bg-amber-500/25 dark:border-amber-400/60 dark:text-amber-50",
+  violet: "bg-violet-100 border-violet-400 text-violet-950 dark:bg-violet-500/25 dark:border-violet-400/60 dark:text-violet-50",
+  slate: "bg-slate-200 border-slate-400 text-slate-950 dark:bg-slate-500/30 dark:border-slate-400/60 dark:text-slate-50",
 };
 
 const SIZES: Record<CardSize, string> = {
@@ -92,11 +93,11 @@ export function Card({
   const content = (
     <>
       {title && (
-        <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{title}</span>
+        <span className="text-[11px] font-extrabold uppercase tracking-wide opacity-90">{title}</span>
       )}
       {icon && <span className={`leading-none ${ICON_SIZE[size]}`}>{icon}</span>}
       {children}
-      {subtitle && <span className="text-[11px] font-semibold leading-tight">{subtitle}</span>}
+      {subtitle && <span className="text-xs font-extrabold leading-tight">{subtitle}</span>}
     </>
   );
 

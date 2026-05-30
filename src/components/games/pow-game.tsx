@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { GameAction } from "@/lib/games/types";
-import type { CardType, PowCardView, PowView, Role } from "@/lib/games/pow";
+import type { CardType, CharKey, PowCardView, PowView, Role } from "@/lib/games/pow";
+import { CHARACTERS } from "@/lib/games/pow";
 import type { LobbyMemberView } from "@/lib/socket/events";
 import { Avatar } from "../avatar";
 import { Button } from "../button";
 import { Card, CardHand, type CardTone } from "../cards/card";
+import { InfoTip } from "../info-tip";
 import { toMemberMap } from "./shared";
 
 const CARD_INFO: Record<CardType, { label: string; icon: string; tone: CardTone }> = {
@@ -40,6 +42,50 @@ const ROLE_INFO: Record<Role, { label: string; icon: string }> = {
   outlaw: { label: "Hors-la-loi", icon: "🐴" },
   renegade: { label: "Renégat", icon: "🃏" },
 };
+
+// Effet de chaque carte (affiché au survol / appui long).
+const CARD_DESC: Record<CardType, string> = {
+  bang: "Tire sur un joueur à portée : il joue Manqué! ou perd 1 PV. Un seul BANG! par tour.",
+  missed: "Annule un BANG! qui te vise.",
+  beer: "Regagne 1 PV (jamais au-dessus du max). Sans effet quand il ne reste que 2 joueurs.",
+  saloon: "Tous les joueurs en vie regagnent 1 PV.",
+  stagecoach: "Pioche 2 cartes.",
+  wells_fargo: "Pioche 3 cartes.",
+  general_store: "Révèle 1 carte par joueur ; chacun en choisit une à son tour.",
+  panic: "Vole une carte (main ou en jeu) à un joueur à distance 1.",
+  cat_balou: "Force n'importe quel joueur à défausser une carte (n'importe quelle distance).",
+  duel: "Défie un joueur : vous défaussez des BANG! à tour de rôle ; le premier qui ne peut plus perd 1 PV.",
+  indians: "Tous les autres défaussent un BANG! ou perdent 1 PV (Manqué!/Tonneau inutiles).",
+  gatling: "Tire un BANG! sur tous les autres joueurs à la fois.",
+  barrel: "En jeu : à chaque BANG! reçu, dégaine ; un ♥ compte comme un Manqué!.",
+  scope: "En jeu : tu vois tous les autres à -1 de distance.",
+  mustang: "En jeu : les autres te voient à +1 de distance.",
+  jail: "Pose sur un joueur (pas le Shérif) : à son tour il dégaine, ♥ = libéré, sinon il saute son tour.",
+  dynamite: "Pose devant toi : à ton tour, dégaine ; ♠ 2–9 = explosion (-3 PV), sinon passe à gauche.",
+  volcanic: "Arme (portée 1) : tu peux jouer autant de BANG! que tu veux par tour.",
+  schofield: "Arme : portée 2.",
+  remington: "Arme : portée 3.",
+  carbine: "Arme : portée 4.",
+  winchester: "Arme : portée 5.",
+};
+
+const CHAR_POWER: Record<CharKey, string> = Object.fromEntries(
+  CHARACTERS.map((c) => [c.key, c.power]),
+) as Record<CharKey, string>;
+
+function cardTip(c: PowCardView) {
+  return (
+    <>
+      <b>{CARD_INFO[c.type].label}</b>
+      <span className="ml-1 opacity-60">
+        {rankLabel(c.rank)}
+        {SUIT[c.suit]}
+      </span>
+      <br />
+      {CARD_DESC[c.type]}
+    </>
+  );
+}
 
 const SUIT = { hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" } as const;
 const rankLabel = (n: number) => (n === 1 ? "A" : n === 11 ? "J" : n === 12 ? "Q" : n === 13 ? "K" : `${n}`);
@@ -115,6 +161,9 @@ export function PowGame({
         </p>
       )}
 
+      {/* Ordre du tour de table */}
+      <TurnOrderBar view={view} name={name} map={map} />
+
       {/* Ton rôle / personnage */}
       <div className="rounded-2xl border border-border bg-surface p-3">
         <div className="flex items-center justify-between">
@@ -131,9 +180,11 @@ export function PowGame({
             <span className="rounded-full bg-primary/10 px-2.5 py-1 font-bold text-primary">
               {ROLE_INFO[view.myRole].icon} {ROLE_INFO[view.myRole].label}
             </span>
-            <span className="rounded-full bg-surface-2 px-2.5 py-1 font-semibold">
-              🤠 {view.players.find((p) => p.id === view.meId)?.charName}
-            </span>
+            <InfoTip content={<><b>{view.players.find((p) => p.id === view.meId)?.charName}</b><br />{CHAR_POWER[view.myChar]}</>}>
+              <span className="cursor-help rounded-full bg-surface-2 px-2.5 py-1 font-semibold underline decoration-dotted underline-offset-2">
+                🤠 {view.players.find((p) => p.id === view.meId)?.charName}
+              </span>
+            </InfoTip>
             <span className="text-xs text-muted">
               {view.myRole === "sheriff" && "Élimine Hors-la-loi et Renégat."}
               {view.myRole === "deputy" && "Protège le Shérif."}
@@ -165,7 +216,19 @@ export function PowGame({
                     {!p.alive && <span title="Éliminé">☠️</span>}
                   </div>
                   <div className="flex flex-wrap items-center gap-1 text-[11px] text-muted">
-                    <span title={p.charName}>🤠 {p.charName}</span>
+                    <InfoTip
+                      content={
+                        <>
+                          <b>{p.charName}</b>
+                          <br />
+                          {CHAR_POWER[p.char]}
+                        </>
+                      }
+                    >
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        🤠 {p.charName}
+                      </span>
+                    </InfoTip>
                     {p.role && (
                       <span className="font-semibold">
                         · {ROLE_INFO[p.role].icon} {ROLE_INFO[p.role].label}
@@ -193,19 +256,20 @@ export function PowGame({
                     const stealable =
                       sel && (sel.type === "panic" || sel.type === "cat_balou") && eligibleTarget(p.id);
                     return (
-                      <button
-                        key={c.id}
-                        disabled={!stealable}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (stealable) onTargetClick(p.id, c.id);
-                        }}
-                        className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] ${
-                          stealable ? "cursor-pointer border-rose-400 hover:bg-rose-500/10" : "border-border bg-surface-2"
-                        }`}
-                      >
-                        {CARD_INFO[c.type].icon} {CARD_INFO[c.type].label}
-                      </button>
+                      <InfoTip key={c.id} content={cardTip(c)}>
+                        <button
+                          disabled={!stealable}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (stealable) onTargetClick(p.id, c.id);
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${
+                            stealable ? "cursor-pointer border-rose-400 hover:bg-rose-500/10" : "border-border bg-surface-2"
+                          }`}
+                        >
+                          {CARD_INFO[c.type].icon} {CARD_INFO[c.type].label}
+                        </button>
+                      </InfoTip>
                     );
                   })}
                 </div>
@@ -234,18 +298,19 @@ export function PowGame({
               const selected = sel?.cardId === c.id;
               const interactive = handCardInteractive(view, c, reacting, canMiss, canBang);
               return (
-                <Card
-                  key={c.id}
-                  size="sm"
-                  tone={info.tone}
-                  title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
-                  icon={info.icon}
-                  subtitle={info.label}
-                  selectable={interactive}
-                  selected={selected}
-                  disabled={!interactive}
-                  onSelect={() => onHandCardClick(view, c, reacting, sendAction, playCard, canMiss, canBang)}
-                />
+                <InfoTip key={c.id} content={cardTip(c)}>
+                  <Card
+                    size="sm"
+                    tone={info.tone}
+                    title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
+                    icon={info.icon}
+                    subtitle={info.label}
+                    selectable={interactive}
+                    selected={selected}
+                    disabled={!interactive}
+                    onSelect={() => onHandCardClick(view, c, reacting, sendAction, playCard, canMiss, canBang)}
+                  />
+                </InfoTip>
               );
             })}
             {view.hand.length === 0 && <p className="py-4 text-sm text-muted">Main vide.</p>}
@@ -320,6 +385,56 @@ function Marker({ children }: { children: React.ReactNode }) {
   );
 }
 
+function TurnOrderBar({
+  view,
+  name,
+  map,
+}: {
+  view: PowView;
+  name: (id: string) => string;
+  map: ReturnType<typeof toMemberMap>;
+}) {
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-surface px-3 py-2">
+      <span className="shrink-0 pr-1 text-[11px] font-bold uppercase tracking-wide text-muted">
+        Ordre du jeu →
+      </span>
+      {view.players.map((p, i) => (
+        <Fragment key={p.id}>
+          {i > 0 && <span className="shrink-0 text-muted/40">›</span>}
+          <InfoTip
+            content={
+              <>
+                <b>{name(p.id)}</b> — {p.charName}
+                {p.role ? ` · ${ROLE_INFO[p.role].label}` : ""}
+                <br />
+                {CHAR_POWER[p.char]}
+              </>
+            }
+          >
+            <span
+              className={`flex shrink-0 flex-col items-center gap-0.5 rounded-lg px-1.5 py-1 ${
+                p.isCurrent ? "bg-primary/15 ring-1 ring-primary" : ""
+              } ${!p.alive ? "opacity-40" : ""}`}
+            >
+              <span className="relative">
+                <Avatar name={name(p.id)} image={map[p.id]?.image} size={26} />
+                {p.isCurrent && <span className="absolute -right-1.5 -top-1.5 text-xs">▶</span>}
+                {!p.alive && (
+                  <span className="absolute inset-0 grid place-items-center text-sm">☠️</span>
+                )}
+              </span>
+              <span className={`text-[10px] font-bold ${p.isCurrent ? "text-primary" : "text-muted"}`}>
+                {i + 1}
+              </span>
+            </span>
+          </InfoTip>
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
 // ───────────────────────────── Zone d'action contextuelle ─────────────────────────────
 
 function ActionZone({
@@ -387,16 +502,17 @@ function ActionZone({
         {p.kind === "general_store" && p.storeCards && (
           <CardHand className="mt-3">
             {p.storeCards.map((c) => (
-              <Card
-                key={c.id}
-                size="sm"
-                tone={CARD_INFO[c.type].tone}
-                title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
-                icon={CARD_INFO[c.type].icon}
-                subtitle={CARD_INFO[c.type].label}
-                selectable
-                onSelect={() => sendAction({ type: "pick", payload: { cardId: c.id } })}
-              />
+              <InfoTip key={c.id} content={cardTip(c)}>
+                <Card
+                  size="sm"
+                  tone={CARD_INFO[c.type].tone}
+                  title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
+                  icon={CARD_INFO[c.type].icon}
+                  subtitle={CARD_INFO[c.type].label}
+                  selectable
+                  onSelect={() => sendAction({ type: "pick", payload: { cardId: c.id } })}
+                />
+              </InfoTip>
             ))}
           </CardHand>
         )}
@@ -458,16 +574,17 @@ function DrawPanel({
         <p className="mb-2 text-sm font-semibold">Kit Carson : garde 2 cartes, repose la 3e sur la pioche.</p>
         <CardHand>
           {view.kitPreview.map((c) => (
-            <Card
-              key={c.id}
-              size="sm"
-              tone={CARD_INFO[c.type].tone}
-              title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
-              icon={CARD_INFO[c.type].icon}
-              subtitle="Reposer"
-              selectable
-              onSelect={() => sendAction({ type: "kitReturn", payload: { cardId: c.id } })}
-            />
+            <InfoTip key={c.id} content={cardTip(c)}>
+              <Card
+                size="sm"
+                tone={CARD_INFO[c.type].tone}
+                title={`${rankLabel(c.rank)}${SUIT[c.suit]}`}
+                icon={CARD_INFO[c.type].icon}
+                subtitle="Reposer"
+                selectable
+                onSelect={() => sendAction({ type: "kitReturn", payload: { cardId: c.id } })}
+              />
+            </InfoTip>
           ))}
         </CardHand>
       </div>
