@@ -53,7 +53,7 @@ export default function Home() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {games.map((g) => (
-              <Link key={g.id} href="/jeux" className="block">
+              <Link key={g.id} href={`/jeux/${g.id}`} className="block">
                 <GameCard meta={g} />
               </Link>
             ))}

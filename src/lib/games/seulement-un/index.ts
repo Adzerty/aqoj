@@ -232,6 +232,14 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
   maxPlayers: 7,
   estimatedMinutes: 12,
   tags: ["Coopératif", "Mots", "Ambiance"],
+  rules: [
+    "Jeu coopératif : faites deviner un maximum de mots, ensemble.",
+    "Un joueur actif ne voit pas le mot mystère ; les autres voient le mot.",
+    "Chaque joueur écrit en secret UN seul mot d'indice.",
+    "Les indices identiques (ou variantes) s'annulent — soyez originaux !",
+    "Le joueur actif découvre les indices restants et tente UNE réponse.",
+    "Bonne réponse = +1. Sur 13 cartes, visez le meilleur score collectif.",
+  ],
 
   createInitialState(ctx) {
     const deck = shuffle(WORDS, ctx.random).slice(0, DECK_SIZE);

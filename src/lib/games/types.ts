@@ -68,6 +68,8 @@ export interface GameMeta {
   maxPlayers: number;
   estimatedMinutes: number;
   tags: string[];
+  /** Règles résumées (une entrée = une étape/point), affichées sur la fiche du jeu. */
+  rules: string[];
 }
 
 export interface GameDefinition<S = unknown, V = unknown> extends GameMeta {
@@ -100,6 +102,7 @@ export function toMeta(def: GameDefinition): GameMeta {
     maxPlayers: def.maxPlayers,
     estimatedMinutes: def.estimatedMinutes,
     tags: def.tags,
+    rules: def.rules,
   };
 }
 

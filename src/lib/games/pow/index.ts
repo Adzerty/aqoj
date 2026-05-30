@@ -432,6 +432,14 @@ export const pow: GameDefinition<State, PowView> = {
   maxPlayers: 7,
   estimatedMinutes: 30,
   tags: ["Rôles cachés", "Cartes", "Soirée"],
+  rules: [
+    "Rôles secrets : Shérif (révélé, +1 PV), Adjoints, Hors-la-loi, Renégat.",
+    "Chaque joueur a un personnage à pouvoir unique et des points de vie.",
+    "À ton tour : pioche 2 cartes, joue ce que tu veux, puis défausse à la limite.",
+    "Un seul BANG! par tour : vise un joueur à portée, il joue Manqué! ou perd 1 PV.",
+    "Distances & armes comptent : Mustang t'éloigne, Lunette te rapproche.",
+    "Shérif & Adjoints : éliminer Hors-la-loi + Renégat. Hors-la-loi : tuer le Shérif. Renégat : être le dernier en vie.",
+  ],
 
   createInitialState(ctx) {
     const r = ctx.random;

@@ -58,6 +58,13 @@ export const reaction: GameDefinition<State, ReactionView> = {
   maxPlayers: 12,
   estimatedMinutes: 3,
   tags: ["Réflexes", "Compétitif", "Rapide"],
+  rules: [
+    "L'écran est rouge : surtout, ne tape pas encore.",
+    "Dès qu'il passe au VERT, tape le plus vite possible.",
+    "Le premier à taper remporte la manche.",
+    "Taper avant le vert = faux départ : tu sautes la manche.",
+    "Le joueur avec le plus de manches gagnées remporte la partie.",
+  ],
 
   createInitialState(ctx) {
     const wins: Record<PlayerId, number> = {};

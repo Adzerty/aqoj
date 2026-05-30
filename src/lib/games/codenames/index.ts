@@ -158,6 +158,14 @@ export const codenames: GameDefinition<State, CodenamesView> = {
   maxPlayers: 8,
   estimatedMinutes: 15,
   tags: ["Équipes", "Déduction", "Mots"],
+  rules: [
+    "Deux équipes (Rouge et Bleue), chacune avec un Espion ; les autres sont Agents.",
+    "L'Espion voit la couleur secrète des 25 mots posés sur la table.",
+    "Il fait deviner les mots de son équipe avec UN seul mot d'indice + UN chiffre.",
+    "Les Agents touchent les cartes : bonne couleur = on continue, sinon le tour passe.",
+    "Toucher l'Assassin = défaite immédiate de l'équipe.",
+    "La première équipe à révéler tous ses mots gagne.",
+  ],
 
   createInitialState(ctx) {
     const assignments = assignTeams(ctx.players);

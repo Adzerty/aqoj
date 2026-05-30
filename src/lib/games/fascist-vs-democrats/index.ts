@@ -354,6 +354,14 @@ export const fascistVsDemocrats: GameDefinition<State, FvDView> = {
   maxPlayers: 10,
   estimatedMinutes: 30,
   tags: ["Déduction", "Rôles cachés", "Soirée"],
+  rules: [
+    "Rôles secrets : Démocrates (majoritaires), Fascistes, et un Chef fasciste caché.",
+    "Chaque manche : le Président nomme un Chancelier, puis tout le monde vote.",
+    "Le gouvernement élu adopte une loi (Démocrate ou Fasciste) en secret.",
+    "Les lois Fascistes débloquent des pouvoirs présidentiels (enquête, exécution, etc.).",
+    "Démocrates : 5 lois Démocrates OU exécuter le Chef.",
+    "Fascistes : 6 lois Fascistes OU faire élire le Chef Chancelier après 3 lois fascistes.",
+  ],
 
   createInitialState(ctx) {
     const ids = ctx.players.map((p) => p.id);

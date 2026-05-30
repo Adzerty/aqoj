@@ -111,6 +111,12 @@ export const tuPreferes: GameDefinition<State, TuPreferesView> = {
   maxPlayers: 12,
   estimatedMinutes: 4,
   tags: ["Vote", "Ambiance", "Rapide"],
+  rules: [
+    "À chaque manche, un dilemme : choisis A ou B en secret avant la fin du chrono.",
+    "Tu marques 1 point par AUTRE joueur ayant fait le même choix que toi.",
+    "Le but n'est pas ton avis perso, mais de deviner l'opinion majoritaire du groupe.",
+    "6 manches au total ; le joueur avec le plus de points l'emporte.",
+  ],
 
   createInitialState(ctx) {
     const scores: Record<PlayerId, number> = {};

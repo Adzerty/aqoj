@@ -220,6 +220,15 @@ export const desDeToucan: GameDefinition<State, ToucanView> = {
   maxPlayers: 8,
   estimatedMinutes: 15,
   tags: ["Bluff", "Dés", "Ambiance"],
+  rules: [
+    "Chacun cache 5 dés sous son gobelet (tu ne vois que les tiens).",
+    "On enchérit sur le nombre de dés d'une même valeur cachés sur TOUTE la table.",
+    "Chaque enchère doit monter : plus de dés, ou une valeur plus haute.",
+    "Les 1 sont des Paco (toucans 🦜) : des jokers qui comptent dans toute enchère.",
+    "Crie « Dudo ! » pour contester : on révèle et on compte ; le perdant perd un dé.",
+    "Variante Calza : annonce un total exact pour récupérer un dé (ou en perdre un).",
+    "Dernier joueur avec des dés = vainqueur.",
+  ],
 
   createInitialState(ctx) {
     const ids = ctx.players.map((p) => p.id);
