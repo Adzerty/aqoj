@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth, emailAuthEnabled } from "@/auth";
 import { Logo } from "@/components/logo";
 import { LoginForm } from "@/components/login-form";
 
@@ -16,7 +16,11 @@ export default async function LoginPage() {
         <Logo />
       </div>
       <div className="flex flex-1 items-center justify-center px-4 pb-20">
-        <LoginForm discordEnabled={discordEnabled} guestEnabled={guestEnabled} />
+        <LoginForm
+          emailEnabled={emailAuthEnabled}
+          discordEnabled={discordEnabled}
+          guestEnabled={guestEnabled}
+        />
       </div>
     </main>
   );

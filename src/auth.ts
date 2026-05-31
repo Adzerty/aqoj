@@ -1,10 +1,16 @@
 import NextAuth from "next-auth";
 import Discord from "next-auth/providers/discord";
+import Nodemailer from "next-auth/providers/nodemailer";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { sendMagicLink } from "@/lib/email";
 
 const enableGuest = process.env.ENABLE_DEV_GUEST === "true";
+// Connexion par email (lien magique) : active si SMTP configuré, ou toujours en dev
+// (le lien s'affiche alors dans la console du serveur).
+export const emailAuthEnabled =
+  !!process.env.EMAIL_HOST || !!process.env.EMAIL_SERVER || process.env.NODE_ENV !== "production";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -39,6 +45,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    // Connexion par email (lien magique, sans mot de passe).
+    ...(emailAuthEnabled
+      ? [
+          Nodemailer({
+            server: process.env.EMAIL_SERVER || "smtp://localhost:587",
+            from: process.env.EMAIL_FROM || "AQOJ <no-reply@aqoj.local>",
+            maxAge: 60 * 30, // lien valable 30 minutes
+            sendVerificationRequest: ({ identifier, url }) => sendMagicLink(identifier, url),
+          }),
+        ]
+      : []),
     // Login "invité" — utile pour tester en local tant que Discord n'est pas
     // configuré. Désactivé en production (sauf override explicite via env).
     ...(enableGuest
