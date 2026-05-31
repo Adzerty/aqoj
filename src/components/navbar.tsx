@@ -50,7 +50,7 @@ export function Navbar() {
                 <Avatar name={session.user.name ?? "Joueur"} image={session.user.image} size={34} />
               </Link>
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
-                Quitter
+                Se déconnecter
               </Button>
             </div>
           ) : (

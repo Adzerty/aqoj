@@ -4,12 +4,9 @@ import { useState } from "react";
 import type { GameAction } from "@/lib/games/types";
 import type { SeulementUnView } from "@/lib/games/seulement-un";
 import type { LobbyMemberView } from "@/lib/socket/events";
-import { useCountdown } from "@/hooks/use-countdown";
 import { Avatar } from "../avatar";
 import { Button } from "../button";
 import { toMemberMap } from "./shared";
-
-const PHASE_MAX: Record<string, number> = { write: 90000, guess: 45000, reveal: 7000 };
 
 const OUTCOME_TEXT: Record<string, { label: string; cls: string }> = {
   correct: { label: "Bonne réponse ! +1", cls: "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" },
@@ -33,12 +30,6 @@ export function SeulementUnGame({
   const [clue, setClue] = useState("");
   const [guess, setGuess] = useState("");
 
-  const msLeft = useCountdown(view.deadline);
-  const seconds = Math.max(0, Math.ceil(msLeft / 1000));
-  const max = PHASE_MAX[view.phase] ?? 60000;
-  const pct = Math.min(100, Math.max(0, (msLeft / max) * 100));
-  const showTimer = view.phase === "write" || view.phase === "guess";
-
   const activeName = map[view.activePlayerId]?.name ?? "Joueur";
 
   function submitClue(e: React.FormEvent) {
@@ -59,28 +50,19 @@ export function SeulementUnGame({
 
   return (
     <div className="space-y-5">
-      {/* En-tête : manche, score, cartes restantes */}
+      {/* En-tête : manche, score, cartes restantes (sans chrono — jeu non chronométré) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-bold text-muted">
           Manche {view.roundNumber} / {view.totalRounds}
         </span>
         <div className="flex items-center gap-3 text-sm">
           <span className="font-bold">
-            Score <span className="font-mono text-base text-emerald-400">{view.score}</span>
+            Score <span className="font-mono text-base text-emerald-500">{view.score}</span>
           </span>
           <span className="text-muted">·</span>
           <span className="text-muted">{view.cardsLeft} carte(s) restante(s)</span>
         </div>
-        {showTimer && <span className="font-mono text-2xl font-bold tabular-nums">{seconds}s</span>}
       </div>
-      {showTimer && (
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="h-full rounded-full bg-amber-500 transition-[width] duration-100"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      )}
 
       {/* Qui devine */}
       <div className="flex items-center justify-center gap-2 text-sm text-muted">
@@ -227,6 +209,18 @@ export function SeulementUnGame({
               ))}
             </div>
           )}
+          {/* Le prochain devineur lance la manche suivante (plus de chrono auto). */}
+          <div className="text-center">
+            {view.canContinue ? (
+              <Button onClick={() => sendAction({ type: "nextRound" })}>
+                {view.cardsLeft > 0 ? "Manche suivante" : "Voir le score final"}
+              </Button>
+            ) : (
+              <p className="text-xs text-muted">
+                En attente de <b className="text-foreground">{activeName}</b> pour relancer…
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

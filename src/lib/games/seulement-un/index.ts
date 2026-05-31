@@ -21,9 +21,6 @@ type Phase = "write" | "guess" | "reveal" | "finished";
 type Outcome = "correct" | "wrong" | "pass" | "no-clues";
 
 const DECK_SIZE = 13;
-const WRITE_MS = 90_000;
-const GUESS_MS = 45_000;
-const REVEAL_MS = 7_000;
 
 const WORDS = [
   "SOLEIL", "PIZZA", "DRAGON", "VAMPIRE", "GUITARE", "PLAGE", "ROBOT", "FANTÔME",
@@ -85,6 +82,8 @@ export interface SeulementUnView {
   writersCount: number;
   clues: ClueView[] | null; // visibles en phase guess/reveal
   lastResult: RoundResult | null;
+  /** En phase reveal : si vrai, c'est à MOI de lancer la manche suivante. */
+  canContinue: boolean;
 }
 
 // ───────────────────────────── Helpers ─────────────────────────────
@@ -137,14 +136,14 @@ function computeUnique(s: State, mysteryWord: string, players: GamePlayer[]): Cl
 // ───────────────────────────── Transitions ─────────────────────────────
 
 /** Fin de la phase d'écriture : calcule les indices uniques puis enchaîne. */
-function endWrite(s: State, players: GamePlayer[], now: number): ReducerResult<State> {
+function endWrite(s: State, players: GamePlayer[]): ReducerResult<State> {
   const mystery = s.deck[s.pointer];
   const unique = computeUnique(s, mystery, players);
   const survivors = unique.filter((c) => !c.eliminated);
 
   if (survivors.length === 0) {
     // Tous les indices éliminés → carte perdue, on passe directement.
-    return resolveRound(s, players, now, {
+    return resolveRound(s, {
       outcome: "no-clues",
       guess: null,
       unique,
@@ -152,16 +151,13 @@ function endWrite(s: State, players: GamePlayer[], now: number): ReducerResult<S
   }
 
   return {
-    state: { ...s, phase: "guess", unique, deadline: now + GUESS_MS },
-    timers: [{ delayMs: GUESS_MS, action: { type: "phaseEnd" } }],
+    state: { ...s, phase: "guess", unique, deadline: 0 },
   };
 }
 
 /** Applique le résultat d'une manche (score + cartes brûlées) et passe en reveal. */
 function resolveRound(
   s: State,
-  players: GamePlayer[],
-  now: number,
   opts: { outcome: Outcome; guess: string | null; unique: ClueView[] },
 ): ReducerResult<State> {
   const mystery = s.deck[s.pointer];
@@ -194,14 +190,13 @@ function resolveRound(
       phase: "reveal",
       unique: opts.unique,
       lastResult,
-      deadline: now + REVEAL_MS,
+      deadline: 0,
     },
-    timers: [{ delayMs: REVEAL_MS, action: { type: "phaseEnd" } }],
   };
 }
 
-/** Fin du reveal : démarre la manche suivante ou termine la partie. */
-function nextRound(s: State, now: number): ReducerResult<State> {
+/** Démarre explicitement la manche suivante (déclenché par un joueur). */
+function nextRound(s: State): ReducerResult<State> {
   if (s.pointer >= s.deck.length) {
     return { state: { ...s, phase: "finished" } };
   }
@@ -212,9 +207,8 @@ function nextRound(s: State, now: number): ReducerResult<State> {
       clues: {},
       unique: null,
       roundNumber: s.roundNumber + 1,
-      deadline: now + WRITE_MS,
+      deadline: 0,
     },
-    timers: [{ delayMs: WRITE_MS, action: { type: "phaseEnd" } }],
   };
 }
 
@@ -256,7 +250,7 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
       unique: null,
       score: 0,
       roundNumber: 1,
-      deadline: ctx.now + WRITE_MS,
+      deadline: 0,
       lastResult: null,
     };
   },
@@ -268,10 +262,7 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
 
     switch (action.type) {
       case "start":
-        return {
-          state: { ...state, deadline: ctx.now + WRITE_MS },
-          timers: [{ delayMs: WRITE_MS, action: { type: "phaseEnd" } }],
-        };
+        return { state };
 
       case "clue": {
         if (state.phase !== "write") return { state };
@@ -282,10 +273,10 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
         const clues = { ...state.clues, [ctx.playerId]: word };
         const next = { ...state, clues };
 
-        // Tous les non-actifs ont écrit → on enchaîne sans attendre le chrono.
+        // Tous les non-actifs ont écrit → on enchaîne la phase suivante.
         const writers = ctx.players.filter((p) => p.id !== activeId);
         const allWritten = writers.every((p) => (clues[p.id] ?? "").trim().length > 0);
-        if (allWritten) return endWrite(next, ctx.players, ctx.now);
+        if (allWritten) return endWrite(next, ctx.players);
 
         return { state: next };
       }
@@ -296,7 +287,7 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
         const guess = String(payload.word ?? "").trim();
         if (!guess) return { state };
         const correct = normalize(guess) === normalize(state.deck[state.pointer]);
-        return resolveRound(state, ctx.players, ctx.now, {
+        return resolveRound(state, {
           outcome: correct ? "correct" : "wrong",
           guess,
           unique: state.unique ?? [],
@@ -306,25 +297,18 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
       case "pass": {
         if (state.phase !== "guess") return { state };
         if (ctx.playerId !== activeId) return { state };
-        return resolveRound(state, ctx.players, ctx.now, {
+        return resolveRound(state, {
           outcome: "pass",
           guess: null,
           unique: state.unique ?? [],
         });
       }
 
-      case "phaseEnd": {
-        if (state.phase === "write") return endWrite(state, ctx.players, ctx.now);
-        if (state.phase === "guess") {
-          // Temps écoulé sans réponse → équivaut à passer.
-          return resolveRound(state, ctx.players, ctx.now, {
-            outcome: "pass",
-            guess: null,
-            unique: state.unique ?? [],
-          });
-        }
-        if (state.phase === "reveal") return nextRound(state, ctx.now);
-        return { state };
+      case "nextRound": {
+        // Passe explicitement à la manche suivante (déclenché par le futur
+        // devineur). Plus aucun timer ne le fait automatiquement.
+        if (state.phase !== "reveal") return { state };
+        return nextRound(state);
       }
 
       default:
@@ -369,6 +353,8 @@ export const seulementUn: GameDefinition<State, SeulementUnView> = {
       writersCount: writers.length,
       clues,
       lastResult: state.phase === "reveal" || state.phase === "finished" ? state.lastResult : null,
+      // Le futur devineur (déjà calculé via activeIndex) déclenche la manche suivante.
+      canContinue: state.phase === "reveal" && playerId === activeId,
     };
   },
 

@@ -8,14 +8,17 @@ import { Avatar } from "../avatar";
 import { Button } from "../button";
 import { toMemberMap } from "./shared";
 
+// L'équipe est féminine (« l'équipe Bleue »), mais l'Espion/Agent est masculin
+// (« Espion Bleu »). On garde deux libellés distincts pour éviter les fautes.
 const TEAM_LABEL: Record<Team, string> = { red: "Rouge", blue: "Bleue" };
+const TEAM_LABEL_M: Record<Team, string> = { red: "Rouge", blue: "Bleu" };
 
-// Styles des cartes selon leur couleur révélée (ou vue par l'Espion).
+// Styles des cartes (forts contrastes) — claires en mode clair, profondes en sombre.
 const CARD_STYLE: Record<CardColor, string> = {
-  red: "border-rose-500/60 bg-rose-500/15 text-rose-200",
-  blue: "border-sky-500/60 bg-sky-500/15 text-sky-200",
-  neutral: "border-amber-300/40 bg-amber-200/10 text-amber-100/80",
-  assassin: "border-zinc-100/40 bg-zinc-900 text-zinc-100",
+  red: "border-rose-500 bg-rose-500 text-white dark:bg-rose-600",
+  blue: "border-sky-500 bg-sky-500 text-white dark:bg-sky-600",
+  neutral: "border-amber-300 bg-amber-200 text-amber-950 dark:bg-amber-300/40 dark:text-amber-50",
+  assassin: "border-zinc-900 bg-zinc-900 text-zinc-50",
 };
 
 function TeamBadge({ team }: { team: Team }) {
@@ -81,8 +84,10 @@ export function CodenamesGame({
 
         {me && (
           <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-muted">
-            Toi : <b className="text-foreground">{TEAM_LABEL[me.team]}</b> ·{" "}
-            {me.role === "spymaster" ? "🕵️ Espion" : "🎯 Agent"}
+            Toi :{" "}
+            <b className="text-foreground">
+              {me.role === "spymaster" ? "🕵️ Espion" : "🎯 Agent"} {TEAM_LABEL_M[me.team]}
+            </b>
           </span>
         )}
       </div>
@@ -92,7 +97,8 @@ export function CodenamesGame({
         <div className="rounded-2xl border border-border bg-surface p-3 text-center">
           {clue ? (
             <p className="text-sm">
-              Indice de <b className={currentTeam === "red" ? "text-rose-300" : "text-sky-300"}>
+              Indice de l&apos;équipe{" "}
+              <b className={currentTeam === "red" ? "text-rose-500 dark:text-rose-300" : "text-sky-600 dark:text-sky-300"}>
                 {TEAM_LABEL[currentTeam]}
               </b>{" "}
               : <span className="font-mono text-lg font-bold">{clue.word.toUpperCase()}</span>{" "}
@@ -106,7 +112,8 @@ export function CodenamesGame({
             </p>
           ) : (
             <p className="text-sm text-muted">
-              En attente de l&apos;indice de l&apos;Espion <b className="text-foreground">{TEAM_LABEL[currentTeam]}</b>…
+              En attente de l&apos;indice de l&apos;Espion{" "}
+              <b className="text-foreground">{TEAM_LABEL_M[currentTeam]}</b>…
             </p>
           )}
         </div>
@@ -128,23 +135,38 @@ export function CodenamesGame({
         {view.cards.map((card, i) => {
           const clickable = view.canGuess && !card.revealed && !finished;
           const colored = card.color !== null;
+          // Carte « découverte » : on doit la voir clairement DIFFÉRENTE — y
+          // compris pour l'Espion qui connaît déjà toutes les couleurs.
+          const revealed = card.revealed;
           return (
             <button
               key={i}
               disabled={!clickable}
               onClick={() => clickable && sendAction({ type: "guess", payload: { cardIndex: i } })}
-              className={`relative flex aspect-[5/3] items-center justify-center rounded-lg border px-1 text-center text-[11px] font-bold uppercase leading-tight transition-all sm:text-sm ${
+              className={`relative flex aspect-[5/3] items-center justify-center rounded-lg border-2 px-1 text-center text-[11px] font-extrabold uppercase leading-tight tracking-wide transition-all sm:text-sm ${
                 colored
                   ? CARD_STYLE[card.color as CardColor]
-                  : "border-border bg-surface-2 text-foreground"
-              } ${card.revealed ? "opacity-80" : ""} ${
+                  : "border-border bg-surface text-foreground"
+              } ${
+                revealed
+                  ? "scale-[0.95] opacity-90 ring-4 ring-inset ring-black/30 shadow-inner shadow-black/30"
+                  : "shadow-sm"
+              } ${
                 clickable ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary" : "cursor-default"
               }`}
+              style={{ textShadow: colored ? "0 1px 2px rgba(0,0,0,0.45)" : undefined }}
               title={card.word}
             >
               <span className="line-clamp-2">{card.word}</span>
-              {card.revealed && card.color === "assassin" && (
-                <span className="absolute right-1 top-1 text-xs">💀</span>
+              {revealed && (
+                <span
+                  className={`absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full text-[10px] font-black ${
+                    card.color === "assassin" ? "bg-white text-zinc-900" : "bg-black/40 text-white"
+                  }`}
+                  title="Carte découverte"
+                >
+                  {card.color === "assassin" ? "💀" : "✓"}
+                </span>
               )}
             </button>
           );
@@ -236,11 +258,11 @@ export function CodenamesGame({
         ))}
       </div>
 
-      {/* Journal */}
+      {/* Journal (scrollable) */}
       {view.log.length > 0 && (
         <div>
           <h4 className="mb-2 text-sm font-bold text-muted">Historique</h4>
-          <div className="space-y-1 rounded-2xl border border-border bg-surface p-3 text-sm">
+          <div className="max-h-44 space-y-1 overflow-y-auto rounded-2xl border border-border bg-surface p-3 text-sm">
             {view.log.map((entry, i) => (
               <p key={i} className={i === 0 ? "font-medium" : "text-muted"}>
                 {entry}

@@ -10,6 +10,7 @@ import type { FvDView } from "@/lib/games/fascist-vs-democrats";
 import type { PowView } from "@/lib/games/pow";
 import type { ToucanView } from "@/lib/games/des-de-toucan";
 import type { PegreView } from "@/lib/games/la-pegre";
+import type { FleurView } from "@/lib/games/cranes-fleuris";
 import { TuPreferesGame } from "./tu-preferes-game";
 import { ReactionGame } from "./reaction-game";
 import { CodenamesGame } from "./codenames-game";
@@ -18,6 +19,7 @@ import { FascistVsDemocratsGame } from "./fascist-vs-democrats-game";
 import { PowGame } from "./pow-game";
 import { DesDeToucanGame } from "./des-de-toucan-game";
 import { LaPegreGame } from "./la-pegre-game";
+import { CranesFleurisGame } from "./cranes-fleuris-game";
 
 export function GameStage({
   gameId,
@@ -93,6 +95,10 @@ export function GameStage({
     case "la-pegre":
       return (
         <LaPegreGame view={view as PegreView} members={members} meId={meId} sendAction={sendAction} />
+      );
+    case "cranes-fleuris":
+      return (
+        <CranesFleurisGame view={view as FleurView} members={members} meId={meId} sendAction={sendAction} />
       );
     default:
       return <p className="py-10 text-center text-muted">Jeu non pris en charge.</p>;

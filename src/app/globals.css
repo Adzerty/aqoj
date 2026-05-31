@@ -122,3 +122,19 @@ body {
 .animate-dice {
   animation: aqoj-dice 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
+/* Contour de texte pour la lisibilité sur fonds colorés (cartes, étiquettes). */
+.text-outline {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    -1px 0 0 rgba(0, 0, 0, 0.35),
+    1px 0 0 rgba(0, 0, 0, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.text-outline-light {
+  text-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.5),
+    -1px 0 0 rgba(255, 255, 255, 0.3),
+    1px 0 0 rgba(255, 255, 255, 0.3);
+}

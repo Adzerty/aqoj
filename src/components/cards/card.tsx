@@ -22,15 +22,17 @@ export type CardTone =
 
 export type CardSize = "sm" | "md" | "lg";
 
-// Tons à fort contraste : fond saturé + texte très foncé (clair) / très clair (sombre).
+// Tons à fort contraste : fond pleinement saturé + texte blanc + contour sombre.
+// Le contour (`.text-outline`) est appliqué aux libellés pour rester lisibles
+// sur les fonds colorés.
 const TONES: Record<CardTone, string> = {
   neutral: "bg-surface border-border text-foreground",
-  blue: "bg-sky-100 border-sky-400 text-sky-950 dark:bg-sky-500/25 dark:border-sky-400/60 dark:text-sky-50",
-  red: "bg-rose-100 border-rose-400 text-rose-950 dark:bg-rose-500/25 dark:border-rose-500/60 dark:text-rose-50",
-  green: "bg-emerald-100 border-emerald-400 text-emerald-950 dark:bg-emerald-500/25 dark:border-emerald-400/60 dark:text-emerald-50",
-  amber: "bg-amber-100 border-amber-400 text-amber-950 dark:bg-amber-500/25 dark:border-amber-400/60 dark:text-amber-50",
-  violet: "bg-violet-100 border-violet-400 text-violet-950 dark:bg-violet-500/25 dark:border-violet-400/60 dark:text-violet-50",
-  slate: "bg-slate-200 border-slate-400 text-slate-950 dark:bg-slate-500/30 dark:border-slate-400/60 dark:text-slate-50",
+  blue: "bg-sky-500 border-sky-700 text-white dark:bg-sky-600",
+  red: "bg-rose-500 border-rose-700 text-white dark:bg-rose-600",
+  green: "bg-emerald-500 border-emerald-700 text-white dark:bg-emerald-600",
+  amber: "bg-amber-500 border-amber-700 text-white dark:bg-amber-600",
+  violet: "bg-violet-500 border-violet-700 text-white dark:bg-violet-600",
+  slate: "bg-slate-600 border-slate-800 text-white dark:bg-slate-700",
 };
 
 const SIZES: Record<CardSize, string> = {
@@ -89,15 +91,22 @@ export function Card({
       ? "hover:-translate-y-1 cursor-pointer"
       : "";
   const cls = `${base} ${TONES[tone]} ${stateCls} ${disabled ? "opacity-50" : ""} ${className}`;
+  // Sur les fonds colorés, on rajoute un contour sombre sur les textes — la
+  // carte neutre garde un rendu normal (texte foncé déjà lisible).
+  const textCls = tone === "neutral" ? "" : "text-outline";
 
   const content = (
     <>
       {title && (
-        <span className="text-[11px] font-extrabold uppercase tracking-wide opacity-90">{title}</span>
+        <span className={`text-[11px] font-extrabold uppercase tracking-wide opacity-95 ${textCls}`}>
+          {title}
+        </span>
       )}
       {icon && <span className={`leading-none ${ICON_SIZE[size]}`}>{icon}</span>}
       {children}
-      {subtitle && <span className="text-xs font-extrabold leading-tight">{subtitle}</span>}
+      {subtitle && (
+        <span className={`text-xs font-extrabold leading-tight ${textCls}`}>{subtitle}</span>
+      )}
     </>
   );
 

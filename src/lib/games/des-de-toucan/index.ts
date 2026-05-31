@@ -210,7 +210,7 @@ function resolve(s: State, caller: PlayerId, type: "dudo" | "calza") {
 
 export const desDeToucan: GameDefinition<State, ToucanView> = {
   id: "des-de-toucan",
-  name: "Dès de Toucan",
+  name: "Dés de Toucan",
   tagline: "Bluff aux dés : surenchéris ou crie « Dudo ! »",
   description:
     "Adaptation de Perudo (3–8 joueurs). Chacun cache 5 dés. On enchérit sur le nombre de dés d'une valeur cachés sous tous les gobelets — en bluffant. Les 1 sont des Paco (toucans), jokers universels. Le dernier avec des dés gagne.",

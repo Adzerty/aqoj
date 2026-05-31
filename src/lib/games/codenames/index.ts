@@ -148,7 +148,7 @@ function assignTeams(
 
 export const codenames: GameDefinition<State, CodenamesView> = {
   id: "codenames",
-  name: "Codenames",
+  name: "Spy words",
   tagline: "Un mot, un chiffre, faites deviner vos agents.",
   description:
     "Deux équipes s'affrontent. L'Espion connaît la couleur secrète des 25 mots et fait deviner ceux de son camp avec un seul mot et un chiffre. Trouvez tous vos mots avant l'adversaire… mais évitez l'Assassin !",
