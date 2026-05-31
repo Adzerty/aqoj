@@ -12,21 +12,20 @@ export default function Home() {
     <>
       <Navbar />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6">
-        {/* Hero */}
-        <section className="flex flex-col items-center pt-16 pb-14 text-center sm:pt-24">
+        {/* Hero — volontairement épuré */}
+        <section className="flex flex-col items-center pt-14 pb-12 text-center sm:pt-20">
           <span className="animate-in mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-medium text-muted">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Pensé pour vos vocaux entre potes
           </span>
-          <h1 className="animate-in max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
-            On joue à quoi ?{" "}
-            <span className="text-primary">La réponse est là.</span>
+          <h1 className="animate-in max-w-xl text-balance text-2xl font-bold tracking-tight sm:text-3xl">
+            On joue à quoi&nbsp;? <span className="text-primary">La réponse est là.</span>
           </h1>
-          <p className="animate-in mt-5 max-w-xl text-balance text-lg leading-relaxed text-muted">
-            Choisis un jeu, crée un salon, partage le code. Tes potes rejoignent en un clic et
-            c&apos;est parti. Des parties rapides, zéro prise de tête.
+          <p className="animate-in mt-3 max-w-md text-balance text-sm leading-relaxed text-muted sm:text-base">
+            Choisis un jeu, partage le code, et c&apos;est parti. Des parties rapides, zéro prise de
+            tête.
           </p>
-          <div className="animate-in mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="animate-in mt-7 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/jeux" size="lg">
               Lancer une partie
               <ArrowRight size={18} />
@@ -80,10 +79,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <footer className="border-t border-border py-8 text-center text-sm text-muted">
-        aqoj — à quoi on joue · fait pour jouer entre potes
-      </footer>
     </>
   );
 }

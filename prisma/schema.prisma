@@ -24,6 +24,8 @@ model User {
   gamesPlayed Int @default(0)
   gamesWon    Int @default(0)
   totalScore  Int @default(0)
+  // Monnaie du jeu : gagnée en fin de partie (3 joueurs ou plus), dépensable plus tard.
+  aqojPoints  Int @default(0)
 
   accounts     Account[]
   sessions     Session[]
@@ -86,6 +88,7 @@ model GameResultPlayer {
   score    Int     @default(0)
   rank     Int     @default(0)
   won      Boolean @default(false)
+  points   Int     @default(0) // AQOJPoints gagnés sur cette partie
 
   result GameResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
   user   User?      @relation(fields: [userId], references: [id], onDelete: SetNull)

@@ -8,7 +8,7 @@ import { Avatar } from "../avatar";
 import { Button } from "../button";
 import { Card, CardHand, type CardTone } from "../cards/card";
 import { InfoTip } from "../info-tip";
-import { toMemberMap } from "./shared";
+import { TableCircle, toMemberMap } from "./shared";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UI Cold War — gestion des phases : draw, propose, respond (+ ONU), effect.
@@ -134,79 +134,91 @@ export function ColdWarGame({
         </div>
       </div>
 
-      {/* Joueurs (vue de la table) */}
-      <div className="grid gap-2 sm:grid-cols-2">
-        {view.players.map((p) => (
-          <div
-            key={p.id}
-            className={`rounded-xl border bg-surface p-2.5 ${
-              p.isActive ? "border-primary ring-1 ring-primary" : p.isWinner ? "border-primary" : "border-border"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Avatar name={p.name} image={map[p.id]?.image} size={30} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold">
-                    {p.name}
-                    {p.id === view.meId && <span className="ml-1 text-xs text-primary">(toi)</span>}
-                  </span>
-                  {p.hasUN && <span title="Jeton ONU 🕊️">🕊️</span>}
+      {/* Joueurs autour de la table (en cercle) */}
+      <TableCircle
+        ids={view.players.map((p) => p.id)}
+        meId={view.meId}
+        center={
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-muted">Centre</span>
+            <IdToken id={view.centerRevealed ?? view.centerIdentity} size="md" />
+          </div>
+        }
+        renderSeat={(id) => {
+          const p = view.players.find((x) => x.id === id)!;
+          return (
+            <div
+              className={`rounded-xl border bg-surface p-2 text-center ${
+                p.isActive ? "border-primary ring-1 ring-primary" : p.isWinner ? "border-primary" : "border-border"
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <div className="relative">
+                  <Avatar name={p.name} image={map[p.id]?.image} size={32} />
+                  {p.hasUN && (
+                    <span className="absolute -right-1.5 -top-1.5 text-sm" title="Jeton ONU">
+                      🕊️
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-muted">
+                <span className="max-w-full truncate text-xs font-semibold">
+                  {p.name}
+                  {p.id === view.meId && <span className="text-primary"> (toi)</span>}
+                </span>
+                <div className="flex items-center gap-1 text-[10px] text-muted">
                   <IdToken id={p.identityRevealed ?? p.identity} size="sm" />
                   <span>
-                    {p.cardCount}/{view.endTrigger} cartes
+                    {p.cardCount}/{view.endTrigger}
                   </span>
                 </div>
               </div>
-            </div>
 
-            {/* Cartes posées devant ce joueur */}
-            {p.cards.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {p.cards.map((c) => {
-                  if (c.faceDown) {
+              {/* Cartes posées devant ce joueur */}
+              {p.cards.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap justify-center gap-0.5">
+                  {p.cards.map((c) => {
+                    if (c.faceDown) {
+                      return (
+                        <span
+                          key={c.id}
+                          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-400 bg-zinc-700 text-[10px] font-bold text-white"
+                          title={c.origin === "ball" ? "Carte Balle" : `Carte ${c.kind ?? "?"}`}
+                        >
+                          {c.origin === "ball" ? (c.value != null ? c.value : "?") : "0"}
+                        </span>
+                      );
+                    }
+                    if (c.origin === "ball") {
+                      return (
+                        <span key={c.id} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-600 bg-zinc-800 text-[10px] font-bold text-white">
+                          {c.value}
+                        </span>
+                      );
+                    }
+                    const info = KIND_INFO[c.kind!];
                     return (
-                      <span
-                        key={c.id}
-                        className="grid h-9 w-9 place-items-center rounded-lg border-2 border-zinc-400 bg-zinc-700 text-xs font-bold text-white"
-                        title={c.origin === "ball" ? "Carte Balle" : `Carte ${c.kind ?? "?"}`}
-                      >
-                        {c.origin === "ball" ? (c.value != null ? c.value : "?") : "0"}
-                      </span>
+                      <InfoTip key={c.id} content={<><b>{info.label}</b> ({c.value})<br />{info.desc}</>}>
+                        <span
+                          className={`grid h-7 w-7 cursor-help place-items-center rounded-md border text-sm shadow-sm ${
+                            info.tone === "blue" ? "bg-sky-500 border-sky-700" :
+                            info.tone === "red" ? "bg-rose-500 border-rose-700" :
+                            info.tone === "green" ? "bg-emerald-500 border-emerald-700" :
+                            info.tone === "amber" ? "bg-amber-500 border-amber-700" :
+                            info.tone === "violet" ? "bg-violet-500 border-violet-700" :
+                            "bg-slate-600 border-slate-800"
+                          }`}
+                        >
+                          {info.icon}
+                        </span>
+                      </InfoTip>
                     );
-                  }
-                  if (c.origin === "ball") {
-                    return (
-                      <span key={c.id} className="grid h-9 w-9 place-items-center rounded-lg border-2 border-zinc-600 bg-zinc-800 text-xs font-bold text-white">
-                        {c.value}
-                      </span>
-                    );
-                  }
-                  const info = KIND_INFO[c.kind!];
-                  return (
-                    <InfoTip key={c.id} content={<><b>{info.label}</b> ({c.value})<br />{info.desc}</>}>
-                      <span
-                        className={`grid h-9 w-9 cursor-help place-items-center rounded-lg border-2 text-base shadow-sm ${
-                          info.tone === "blue" ? "bg-sky-500 border-sky-700" :
-                          info.tone === "red" ? "bg-rose-500 border-rose-700" :
-                          info.tone === "green" ? "bg-emerald-500 border-emerald-700" :
-                          info.tone === "amber" ? "bg-amber-500 border-amber-700" :
-                          info.tone === "violet" ? "bg-violet-500 border-violet-700" :
-                          "bg-slate-600 border-slate-800"
-                        }`}
-                      >
-                        {info.icon}
-                      </span>
-                    </InfoTip>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }}
+      />
 
       {/* Zone d'action */}
       <ActionZone view={view} name={name} map={map} sendAction={sendAction} />

@@ -26,7 +26,7 @@ export default async function ProfilPage() {
     { label: "Parties jouées", value: user.gamesPlayed },
     { label: "Victoires", value: user.gamesWon },
     { label: "Taux de victoire", value: `${winrate}%` },
-    { label: "Points cumulés", value: user.totalScore },
+    { label: "Score cumulé", value: user.totalScore },
   ];
 
   return (
@@ -44,6 +44,21 @@ export default async function ProfilPage() {
                 user.createdAt,
               )}
             </p>
+          </div>
+        </div>
+
+        {/* AQOJPoints — la monnaie du jeu */}
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
+          <div>
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-600 dark:text-amber-400">
+              <span>🪙</span> AQOJPoints
+            </div>
+            <p className="mt-0.5 text-xs text-muted">
+              Gagnés en fin de partie (3 joueurs ou plus). Bientôt dépensables !
+            </p>
+          </div>
+          <div className="text-4xl font-extrabold tabular-nums text-amber-600 dark:text-amber-400">
+            {user.aqojPoints}
           </div>
         </div>
 
@@ -96,7 +111,13 @@ export default async function ProfilPage() {
                     <div className="text-sm font-bold">
                       {r.won ? "🏆 Victoire" : `${ordinal(r.rank)}`}
                     </div>
-                    <div className="font-mono text-xs text-muted">{r.score} pts</div>
+                    {r.points > 0 ? (
+                      <div className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                        +{r.points} 🪙
+                      </div>
+                    ) : (
+                      <div className="font-mono text-xs text-muted">{r.score} pts</div>
+                    )}
                   </div>
                 </div>
               );

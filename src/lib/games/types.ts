@@ -106,6 +106,30 @@ export function toMeta(def: GameDefinition): GameMeta {
   };
 }
 
+// ───────────────────────────── AQOJPoints ─────────────────────────────
+// Monnaie du jeu gagnée en fin de partie, UNIQUEMENT à partir de 3 joueurs.
+// • Jeu individuel (un seul gagnant) : 5 pts au 1er, 2 pts au 2e.
+// • Jeu en équipe (plusieurs gagnants) : 5 pts à chaque membre de l'équipe gagnante.
+export const AQOJ_MIN_PLAYERS_FOR_POINTS = 3;
+
+/** Calcule les AQOJPoints de chaque joueur à partir du classement final. */
+export function aqojPointsFor(
+  results: GameResultEntry[],
+  playerCount: number,
+): Record<PlayerId, number> {
+  const out: Record<PlayerId, number> = {};
+  for (const r of results) out[r.playerId] = 0;
+  if (playerCount < AQOJ_MIN_PLAYERS_FOR_POINTS) return out;
+
+  const winners = results.filter((r) => r.won);
+  const teamGame = winners.length > 1; // plusieurs gagnants = victoire d'équipe
+  for (const r of results) {
+    if (r.won) out[r.playerId] = 5;
+    else if (!teamGame && r.rank === 2) out[r.playerId] = 2;
+  }
+  return out;
+}
+
 /** Helper : attribue des rangs à partir des scores (desc) et marque le(s) gagnant(s). */
 export function rankByScore(
   scores: { playerId: PlayerId; score: number }[],

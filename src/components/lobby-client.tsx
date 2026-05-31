@@ -84,6 +84,11 @@ export function LobbyClient({ code, metas }: { code: string; metas: GameMeta[] }
                 </span>
                 <Avatar name={r.name} image={r.image} size={30} />
                 <span className="flex-1 truncate text-sm font-semibold">{r.name}</span>
+                {r.points > 0 && (
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                    +{r.points} pts
+                  </span>
+                )}
                 <span className="font-mono text-sm font-bold">{r.score}</span>
               </div>
             ))}

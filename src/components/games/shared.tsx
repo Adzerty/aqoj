@@ -1,7 +1,60 @@
+import type { ReactNode } from "react";
 import type { LobbyMemberView } from "@/lib/socket/events";
 import { Avatar } from "../avatar";
 
 export type MemberMap = Record<string, LobbyMemberView>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TableCircle — dispose les joueurs « autour d'une table » (en cercle) plutôt
+// qu'en colonnes. « Moi » est ancré en bas, les autres s'égrènent autour. Le
+// centre accueille une info partagée (jeton central, tour en cours…).
+// Le rendu de chaque siège est délégué à l'appelant via `renderSeat`.
+// ─────────────────────────────────────────────────────────────────────────────
+export function TableCircle({
+  ids,
+  meId,
+  renderSeat,
+  center,
+  className = "",
+}: {
+  ids: string[];
+  meId: string | null;
+  renderSeat: (id: string, isMe: boolean) => ReactNode;
+  center?: ReactNode;
+  className?: string;
+}) {
+  // Réordonne pour que « moi » occupe le siège du bas.
+  const meIdx = meId ? ids.indexOf(meId) : -1;
+  const seats = meIdx >= 0 ? [...ids.slice(meIdx), ...ids.slice(0, meIdx)] : ids;
+  const n = seats.length;
+
+  return (
+    <div
+      className={`relative mx-auto aspect-square w-full max-w-[26rem] rounded-full border border-dashed border-border/70 bg-surface/40 ${className}`}
+    >
+      {center !== undefined && (
+        <div className="absolute left-1/2 top-1/2 w-2/5 -translate-x-1/2 -translate-y-1/2 text-center">
+          {center}
+        </div>
+      )}
+      {seats.map((id, i) => {
+        // i=0 → bas du cercle ; on tourne dans le sens horaire.
+        const angle = Math.PI / 2 + (i / n) * 2 * Math.PI;
+        const x = 50 + 43 * Math.cos(angle);
+        const y = 50 + 43 * Math.sin(angle);
+        return (
+          <div
+            key={id}
+            className="absolute w-[7.5rem] -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${x}%`, top: `${y}%` }}
+          >
+            {renderSeat(id, id === meId)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function toMemberMap(members: LobbyMemberView[]): MemberMap {
   return Object.fromEntries(members.map((m) => [m.id, m]));

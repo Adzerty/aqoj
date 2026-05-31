@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import { getGame } from "../lib/games/registry";
 import {
+  aqojPointsFor,
   type GameAction,
   type GameDefinition,
   type GamePlayer,
@@ -327,6 +328,7 @@ export class LobbyManager {
 
     const results = rt.def.getResults(rt.state, rt.participants);
     const byId = new Map(rt.participants.map((p) => [p.id, p]));
+    const points = aqojPointsFor(results, rt.participants.length);
     const view: GameResultView[] = results
       .map((r) => {
         const p = byId.get(r.playerId);
@@ -337,6 +339,7 @@ export class LobbyManager {
           score: r.score,
           rank: r.rank,
           won: r.won,
+          points: points[r.playerId] ?? 0,
         };
       })
       .sort((a, b) => a.rank - b.rank);

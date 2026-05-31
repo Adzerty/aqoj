@@ -42,6 +42,7 @@ export interface GameResultView {
   score: number;
   rank: number;
   won: boolean;
+  points: number; // AQOJPoints gagnés sur cette partie
 }
 
 export interface GameOverPayload {

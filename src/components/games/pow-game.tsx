@@ -9,7 +9,7 @@ import { Avatar } from "../avatar";
 import { Button } from "../button";
 import { Card, CardHand, type CardTone } from "../cards/card";
 import { InfoTip } from "../info-tip";
-import { toMemberMap } from "./shared";
+import { TableCircle, toMemberMap } from "./shared";
 
 const CARD_INFO: Record<CardType, { label: string; icon: string; tone: CardTone }> = {
   bang: { label: "BANG!", icon: "🔫", tone: "red" },
@@ -195,63 +195,81 @@ export function PowGame({
         )}
       </div>
 
-      {/* Joueurs */}
-      <div className="grid gap-2 sm:grid-cols-2">
-        {view.players.map((p) => {
+      {/* Joueurs autour de la table (en cercle) */}
+      <TableCircle
+        ids={view.players.map((p) => p.id)}
+        meId={view.meId}
+        center={
+          <div className="flex flex-col items-center gap-1 text-muted">
+            {view.discardTop ? (
+              <>
+                <span className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface-2 text-base">
+                  {CARD_INFO[view.discardTop.type].icon}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide">Défausse</span>
+              </>
+            ) : (
+              <span className="text-2xl">🤠</span>
+            )}
+          </div>
+        }
+        renderSeat={(id) => {
+          const p = view.players.find((x) => x.id === id)!;
           const targetable = sel && eligibleTarget(p.id);
           return (
             <div
-              key={p.id}
               onClick={() => targetable && onTargetClick(p.id)}
-              className={`rounded-xl border p-2.5 transition-all ${
+              className={`rounded-xl border bg-surface p-2 text-center transition-all ${
                 p.isCurrent ? "border-primary ring-1 ring-primary" : "border-border"
               } ${p.alive ? "" : "opacity-50"} ${targetable ? "cursor-pointer ring-2 ring-rose-400 hover:-translate-y-0.5" : ""}`}
             >
-              <div className="flex items-center gap-2">
-                <Avatar name={name(p.id)} image={map[p.id]?.image} size={30} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate text-sm font-semibold">{name(p.id)}</span>
-                    {p.id === view.meId && <span className="text-xs text-primary">(toi)</span>}
-                    {!p.alive && <span title="Éliminé">☠️</span>}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1 text-[11px] text-muted">
-                    <InfoTip
-                      content={
-                        <>
-                          <b>{p.charName}</b>
-                          <br />
-                          {CHAR_POWER[p.char]}
-                        </>
-                      }
-                    >
-                      <span className="cursor-help underline decoration-dotted underline-offset-2">
-                        🤠 {p.charName}
-                      </span>
-                    </InfoTip>
-                    {p.role && (
-                      <span className="font-semibold">
-                        · {ROLE_INFO[p.role].icon} {ROLE_INFO[p.role].label}
-                      </span>
-                    )}
-                  </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <div className="relative">
+                  <Avatar name={name(p.id)} image={map[p.id]?.image} size={32} />
+                  {p.isCurrent && <span className="absolute -right-1.5 -top-1.5 text-xs">▶</span>}
+                  {!p.alive && (
+                    <span className="absolute inset-0 grid place-items-center text-base">☠️</span>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-rose-500">
-                    {"❤".repeat(Math.max(0, p.hp))}
-                    <span className="text-muted/40">{"❤".repeat(Math.max(0, p.maxHp - p.hp))}</span>
-                  </div>
-                  <div className="text-[10px] text-muted">
-                    {p.id !== view.meId && p.distance != null && `dist. ${p.distance} · `}
-                    {p.handCount} carte{p.handCount > 1 ? "s" : ""}
-                  </div>
+                <span className="max-w-full truncate text-xs font-semibold">
+                  {name(p.id)}
+                  {p.id === view.meId && <span className="text-primary"> (toi)</span>}
+                </span>
+                <div className="text-xs font-bold text-rose-500">
+                  {"❤".repeat(Math.max(0, p.hp))}
+                  <span className="text-muted/40">{"❤".repeat(Math.max(0, p.maxHp - p.hp))}</span>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-x-1 text-[10px] text-muted">
+                  <InfoTip
+                    content={
+                      <>
+                        <b>{p.charName}</b>
+                        <br />
+                        {CHAR_POWER[p.char]}
+                      </>
+                    }
+                  >
+                    <span className="cursor-help underline decoration-dotted underline-offset-2">
+                      🤠 {p.charName}
+                    </span>
+                  </InfoTip>
+                  {p.role && (
+                    <span className="font-semibold">
+                      {ROLE_INFO[p.role].icon}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[10px] text-muted">
+                  {p.id !== view.meId && p.distance != null && `dist. ${p.distance} · `}
+                  {p.handCount} c.
                 </div>
               </div>
+
               {/* marqueurs & cartes bleues */}
               {(p.board.length > 0 || p.jailed || p.hasDynamite) && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {p.jailed && <Marker>🔒 Prison</Marker>}
-                  {p.hasDynamite && <Marker>🧨 Dynamite</Marker>}
+                <div className="mt-1 flex flex-wrap justify-center gap-0.5">
+                  {p.jailed && <Marker>🔒</Marker>}
+                  {p.hasDynamite && <Marker>🧨</Marker>}
                   {p.board.map((c) => {
                     const stealable =
                       sel && (sel.type === "panic" || sel.type === "cat_balou") && eligibleTarget(p.id);
@@ -263,11 +281,12 @@ export function PowGame({
                             e.stopPropagation();
                             if (stealable) onTargetClick(p.id, c.id);
                           }}
-                          className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${
+                          className={`inline-flex items-center rounded-md border px-1 py-0.5 text-[11px] font-medium ${
                             stealable ? "cursor-pointer border-rose-400 hover:bg-rose-500/10" : "border-border bg-surface-2"
                           }`}
+                          title={CARD_INFO[c.type].label}
                         >
-                          {CARD_INFO[c.type].icon} {CARD_INFO[c.type].label}
+                          {CARD_INFO[c.type].icon}
                         </button>
                       </InfoTip>
                     );
@@ -276,8 +295,8 @@ export function PowGame({
               )}
             </div>
           );
-        })}
-      </div>
+        }}
+      />
 
       {/* Zone d'action */}
       <ActionZone view={view} name={name} sendAction={sendAction} canMiss={canMiss} canBang={canBang} />

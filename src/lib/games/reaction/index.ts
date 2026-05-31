@@ -54,7 +54,7 @@ export const reaction: GameDefinition<State, ReactionView> = {
     "L'écran est rouge… attends. Dès qu'il passe au VERT, tape le plus vite possible ! Le premier rafle la manche. Mais attention : taper trop tôt = faux départ, tu sautes ton tour.",
   emoji: "⚡",
   accent: "clay",
-  minPlayers: 2,
+  minPlayers: 1,
   maxPlayers: 12,
   estimatedMinutes: 3,
   tags: ["Réflexes", "Compétitif", "Rapide"],

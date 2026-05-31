@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Logo } from "./logo";
@@ -11,6 +12,7 @@ import { useSocket } from "./socket-provider";
 export function Navbar() {
   const { data: session, status } = useSession();
   const { currentTable } = useSocket();
+  const points = useAqojPoints(status === "authenticated");
 
   const linkCls =
     "hidden rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground sm:block";
@@ -42,6 +44,17 @@ export function Navbar() {
             </Link>
           )}
 
+          {status === "authenticated" && points !== null && (
+            <Link
+              href="/profil"
+              title="Tes AQOJPoints"
+              className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-sm font-bold text-amber-600 transition-colors hover:bg-amber-500/15 dark:text-amber-400"
+            >
+              <span>🪙</span>
+              <span className="tabular-nums">{points}</span>
+            </Link>
+          )}
+
           <ThemeToggle />
 
           {status === "authenticated" ? (
@@ -62,4 +75,31 @@ export function Navbar() {
       </div>
     </header>
   );
+}
+
+// Solde d'AQOJPoints du joueur connecté. Rafraîchi au montage et à chaque retour
+// sur l'onglet (le solde change après une partie terminée dans le lobby).
+function useAqojPoints(enabled: boolean): number | null {
+  const [points, setPoints] = useState<number | null>(null);
+
+  const refresh = useCallback(() => {
+    if (!enabled) return;
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && typeof d.aqojPoints === "number") setPoints(d.aqojPoints);
+      })
+      .catch(() => {});
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    refresh();
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [enabled, refresh]);
+
+  // Le badge n'est de toute façon affiché qu'une fois authentifié.
+  return enabled ? points : null;
 }

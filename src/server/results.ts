@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import type { GamePlayer, GameResultEntry } from "../lib/games/types";
+import { aqojPointsFor, type GamePlayer, type GameResultEntry } from "../lib/games/types";
 
 // Enregistre une partie terminée et met à jour les stats agrégées des joueurs.
 export async function persistResult(
@@ -9,6 +9,9 @@ export async function persistResult(
   participants: GamePlayer[],
 ) {
   const byId = new Map(participants.map((p) => [p.id, p]));
+
+  // AQOJPoints : monnaie gagnée selon le classement (à partir de 3 joueurs).
+  const points = aqojPointsFor(results, participants.length);
 
   // Quels userId existent réellement en base (les invités en ont un aussi).
   const ids = results.map((r) => r.playerId);
@@ -30,6 +33,7 @@ export async function persistResult(
             score: r.score,
             rank: r.rank,
             won: r.won,
+            points: points[r.playerId] ?? 0,
           })),
         },
       },
@@ -43,6 +47,7 @@ export async function persistResult(
             gamesPlayed: { increment: 1 },
             gamesWon: { increment: r.won ? 1 : 0 },
             totalScore: { increment: r.score },
+            aqojPoints: { increment: points[r.playerId] ?? 0 },
           },
         }),
       ),
