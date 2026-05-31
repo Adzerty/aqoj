@@ -6,6 +6,7 @@ import { seulementUn } from "./seulement-un";
 import { fascistVsDemocrats } from "./fascist-vs-democrats";
 import { pow } from "./pow";
 import { desDeToucan } from "./des-de-toucan";
+import { laPegre } from "./la-pegre";
 
 // Registre central de tous les jeux. Ajouter un jeu = l'importer et l'ajouter ici.
 const GAMES: GameDefinition[] = [
@@ -16,6 +17,7 @@ const GAMES: GameDefinition[] = [
   fascistVsDemocrats,
   pow,
   desDeToucan,
+  laPegre,
 ];
 
 const BY_ID = new Map<string, GameDefinition>(GAMES.map((g) => [g.id, g]));
