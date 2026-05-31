@@ -500,8 +500,13 @@ export const coldWar: GameDefinition<State, CWView> = {
           }
           if (s.revealed.length >= 2) {
             s.hand = [...s.revealed];
-            s.revealed = [];
+            // On NE vide PAS `revealed` : les 2 cartes piochées restent publiques
+            // pendant la phase `propose` (tout le monde connaît les options).
             s.phase = "propose";
+            s.log = pushLog(
+              s.log,
+              `🃏 ${nm(s, me)} a pioché ${s.revealed.map((c) => `${c.kind} (${c.value > 0 ? "+" : ""}${c.value})`).join(" et ")}.`,
+            );
           }
           return { state: s };
         }
@@ -515,6 +520,7 @@ export const coldWar: GameDefinition<State, CWView> = {
           const other = s.hand.find((c) => c.id !== cardId)!;
           s.deck.push(other);
           s.hand = [];
+          s.revealed = []; // les cartes piochées ne sont plus affichées publiquement
           s.proposition = card;
           s.propositionFrom = me;
           s.propositionTo = targetId;

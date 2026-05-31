@@ -238,6 +238,28 @@ export function ColdWarGame({
   );
 }
 
+// Affiche une main de cartes Personnage révélées, chacune avec le tooltip du rôle.
+function RevealedHand({ cards }: { cards: { id: string; kind: PersonageKind; value: number }[] }) {
+  return (
+    <CardHand>
+      {cards.map((c) => {
+        const info = KIND_INFO[c.kind];
+        return (
+          <InfoTip key={c.id} content={<><b>{info.label}</b> ({c.value > 0 ? "+" : ""}{c.value})<br />{info.desc}</>}>
+            <Card
+              size="sm"
+              tone={info.tone}
+              title={`${c.value > 0 ? "+" : ""}${c.value}`}
+              icon={info.icon}
+              subtitle={info.label}
+            />
+          </InfoTip>
+        );
+      })}
+    </CardHand>
+  );
+}
+
 // ───────────────────────────── Zone d'action ─────────────────────────────
 
 function ActionZone({
@@ -270,23 +292,7 @@ function ActionZone({
         <p className="text-sm font-semibold">
           Pioche jusqu&apos;à révéler 2 personnages différents ({view.revealed.length}/2)
         </p>
-        {view.revealed.length > 0 && (
-          <CardHand>
-            {view.revealed.map((c) => {
-              const info = KIND_INFO[c.kind];
-              return (
-                <Card
-                  key={c.id}
-                  size="sm"
-                  tone={info.tone}
-                  title={`${c.value > 0 ? "+" : ""}${c.value}`}
-                  icon={info.icon}
-                  subtitle={info.label}
-                />
-              );
-            })}
-          </CardHand>
-        )}
+        {view.revealed.length > 0 && <RevealedHand cards={view.revealed} />}
         <Button onClick={() => sendAction({ type: "draw" })}>Piocher</Button>
       </div>
     );
@@ -330,6 +336,31 @@ function ActionZone({
   // Phase effect
   if (view.effect) return <EffectPanel view={view} name={name} map={map} sendAction={sendAction} />;
 
+  // Phases draw / propose vues par les autres joueurs : les cartes piochées sont
+  // publiques (tout le monde connaît les options ; seule la Proposition reste secrète).
+  if ((view.phase === "draw" || view.phase === "propose") && view.revealed.length > 0) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 text-center">
+        <p className="text-sm text-muted">
+          {view.phase === "draw" ? (
+            <><b className="text-foreground">{name(view.activeId)}</b> a pioché :</>
+          ) : (
+            <><b className="text-foreground">{name(view.activeId)}</b> choisit sa Proposition parmi :</>
+          )}
+        </p>
+        <RevealedHand cards={view.revealed} />
+      </div>
+    );
+  }
+
+  if (view.phase === "draw") {
+    return (
+      <p className="rounded-2xl border border-border bg-surface p-3 text-center text-sm text-muted">
+        <b className="text-foreground">{name(view.activeId)}</b> pioche…
+      </p>
+    );
+  }
+
   // Sinon : observer
   return (
     <p className="rounded-2xl border border-border bg-surface p-3 text-center text-sm text-muted">
@@ -364,17 +395,18 @@ function ProposePanel({
         {view.myHand.map((c) => {
           const info = KIND_INFO[c.kind];
           return (
-            <Card
-              key={c.id}
-              size="md"
-              tone={info.tone}
-              title={`${c.value > 0 ? "+" : ""}${c.value}`}
-              icon={info.icon}
-              subtitle={info.label}
-              selectable
-              selected={cardId === c.id}
-              onSelect={() => setCardId(c.id)}
-            />
+            <InfoTip key={c.id} content={<><b>{info.label}</b> ({c.value > 0 ? "+" : ""}{c.value})<br />{info.desc}</>}>
+              <Card
+                size="md"
+                tone={info.tone}
+                title={`${c.value > 0 ? "+" : ""}${c.value}`}
+                icon={info.icon}
+                subtitle={info.label}
+                selectable
+                selected={cardId === c.id}
+                onSelect={() => setCardId(c.id)}
+              />
+            </InfoTip>
           );
         })}
       </CardHand>
