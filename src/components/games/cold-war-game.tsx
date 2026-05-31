@@ -516,6 +516,18 @@ function EffectPanel({
     );
   }
 
+  // Assassin étape 0 : piocher une Balle (aucune cible à choisir encore).
+  if (eff.kind === "assassin" && eff.step === 0) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-center">
+        <p className="text-sm font-semibold">🔫 Pioche une Balle et regarde sa valeur…</p>
+        <Button onClick={() => sendAction({ type: "effectAction", payload: {} })}>
+          Piocher une Balle
+        </Button>
+      </div>
+    );
+  }
+
   // Psychiatre / Politicien / Assassin : sélectionner parmi `effectChoices`
   if (view.effectChoices.length > 0) {
     const intro =
@@ -524,31 +536,23 @@ function EffectPanel({
         : eff.kind === "politicien"
           ? "🗣️ Pose ta carte devant un joueur (et regarde son jeton) :"
           : eff.kind === "assassin"
-            ? eff.step === 0
-              ? "🔫 Pioche une Balle…"
-              : "🔫 Donne la Balle à un joueur (face cachée) :"
+            ? "🔫 Donne la Balle à un joueur (face cachée) :"
             : "Choisis une cible :";
     return (
       <div className="space-y-3 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-center">
         <p className="text-sm font-semibold">{intro}</p>
-        {eff.kind === "assassin" && eff.step === 0 ? (
-          <Button onClick={() => sendAction({ type: "effectAction", payload: {} })}>
-            Piocher une Balle
-          </Button>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-2">
-            {view.effectChoices.map((id) => (
-              <button
-                key={id}
-                onClick={() => sendAction({ type: "effectAction", payload: { targetId: id } })}
-                className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium hover:border-primary"
-              >
-                <Avatar name={name(id)} image={map[id]?.image} size={22} />
-                {name(id)}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap justify-center gap-2">
+          {view.effectChoices.map((id) => (
+            <button
+              key={id}
+              onClick={() => sendAction({ type: "effectAction", payload: { targetId: id } })}
+              className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium hover:border-primary"
+            >
+              <Avatar name={name(id)} image={map[id]?.image} size={22} />
+              {name(id)}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
