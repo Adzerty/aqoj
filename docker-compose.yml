@@ -50,8 +50,15 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+    networks:
+      - default
+      - edge
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+
+networks:
+  edge:
+    external: true
