@@ -12,11 +12,11 @@
 }
 
 poopedex.adzerty.fr {
-    encode zstd gzip
-    reverse_proxy poopedex-web:80
+	encode zstd gzip
+	reverse_proxy poopedex-web:80
 }
 
 api.poopedex.adzerty.fr {
-    encode zstd gzip
-    reverse_proxy poopedex-api:3000
+	encode zstd gzip
+	reverse_proxy poopedex-api:3000
 }
